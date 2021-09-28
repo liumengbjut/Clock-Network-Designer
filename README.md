@@ -385,3 +385,49 @@ vector<CmdPlacementBlockage> placement_blockages_;
 vector<CmdRouteBlockage> route_blockages_;
 vector<pair<string, vector<CmdPrerouteWire>>> preroute_wires_; // string is net name, vector is net shape
 };
+
+ 9.	Tcl Package的使用及二进制封装流程
+A．程序示例：
+pkg_func.tcl:
+
+package provide cmd_pkg 1.0  ;# Package名称及版本号
+
+namespace eval ::cmd_pkg {
+  namespace export *        ;# 提供Package中可被调用的函数名称
+}
+
+proc ::cmd_pkg::print {str} {  ;# 注意此处层次化名空间的使用
+  set fid [open ./test_result.txt w]
+puts $fid $str
+close $fid
+}
+
+main.tcl:
+
+lappend auto_path ./tcl_pkg       ;# 指定Package所在的路径
+package require cmd_pkg  ;# 指定所需Package的名称
+
+cmd_pkg::print "clock mesh designer"  ;# 调用Package内部的函数
+
+
+   B. 运行tclsh8.6
+     % pkg_mkIndex ./tcl_pkg *.tcl  ;# 产生pkgIndex.tcl文件，告诉程序如何使用该Package
+
+
+   C．在https://sourceforge.net上下载tclexecomp，该工具是freewrap的增强版
+(https://sourceforge.net/projects/tclexecomp/?source=directory)，
+(http://freewrap.sourceforge.net/)
+利用tclexecomp来进行Package的二进制封装
+
+Eg: /home/sunwq/TEST/tclexecomp-V1.0.4/tclexecomp64 test.tcl ./tcl_pkg/*.tcl
+-w /home/sunwq/TEST/tclexecomp-V1.0.4/tclexecomp64 –o mytest -forcewrap
+
+
+
+10.	对设计版图解析程序cmd_get_design_info_func.tcl的补充解释：
+A．	cmd_get_available_row_areas 根据用户给定的某个CLKBUF/CLKINV名字求得该类型单元instance可以摆放的cell row区域，算法所确定的最终驱动单元的位置必须落在该函数计算出来的允许的cell row区域内部；
+B．	cmd_get_voltage_areas算法所确定的最终驱动单元的位置必须落在用户给定的Voltage Area内部，而不能落到其它的Voltage Area之中。其它的Voltage Area可以视为Placement Blockage在规避算法中加以考虑；
+C．	cmd_get_preroute_net_shapes算法所确定的驱动单元的位置最好不要放在preroute net shape的下方，因为这样preroute net shape会阻挡从驱动单元到布线层的走线，为了规避阻挡而产生的绕线会增加时钟走线的skew；
+D．	cmd_get_track_info时钟走线必须走在track上，即时钟线的中间线与相应track重叠；
+E．	cmd_get_clock_source获取时钟的源头，从时钟源头将时钟引到其所控制寄存器的重心位置再生成tree；
+F．	cmd_get_preplace_stdcells出于简化DRC考虑，要求时钟驱动单元距离fixed的preplace单元距离不小于2um，同时必须在unit tile的整数倍上面unit tile的宽度可以通过get_attr [get_site_rows xx] site_space，xx为cmd_get_available_row_areas中的任意一个row，时钟驱动单元与fixed单元的间距为site_space数值的整数倍
