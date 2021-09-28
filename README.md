@@ -431,3 +431,33 @@ C．	cmd_get_preroute_net_shapes算法所确定的驱动单元的位置最好不
 D．	cmd_get_track_info时钟走线必须走在track上，即时钟线的中间线与相应track重叠；
 E．	cmd_get_clock_source获取时钟的源头，从时钟源头将时钟引到其所控制寄存器的重心位置再生成tree；
 F．	cmd_get_preplace_stdcells出于简化DRC考虑，要求时钟驱动单元距离fixed的preplace单元距离不小于2um，同时必须在unit tile的整数倍上面unit tile的宽度可以通过get_attr [get_site_rows xx] site_space，xx为cmd_get_available_row_areas中的任意一个row，时钟驱动单元与fixed单元的间距为site_space数值的整数倍
+ 
+ 
+11.	规划函数
+Factor.h中包含整个素数分解算法，在Factor类中。最大扇出目前为7，可以根据需求拓展。
+成员函数NQF（）：返回pair型数据，first元素代表推荐规划sink数目，以满足1,2,3,5,7分解。Second元素代表整棵树的深度。
+成员函数element（）：返回每一层树分解策略方法，如2,3,5,7，并存储在vector向量中。
+ 
+12.	树的建立
+ 
+针对最大扇出建立以上数据结构
+ 
+对匹配算法结果建立以上数据结构
+ 
+对求解的树节点建立以上数据结构
+1)	二叉树的建立
+聚簇算法：包含在EdmondsMatching.hpp，并返回二维向量型匹配结果；
+合并求解：Merge_2points.h中描述了每个待合并点的TRR建立和合并过程，为main中调用的函数为pair<int,int> Merge2Node(Point cell1, Point cell2, double r)：完成了父节点x,y坐标的选取，与obstacle区域重合的检查，最终返回可行的x,y。
+2)	三叉树的建立
+聚簇算法：包含在cluster_3points.h中建立了类Greedy_3P，调用成员函数strategy得到二维向量型匹配结果。
+合并求解：Merge_3points.h中描述了每个待合并点的TRR建立和合并过程，为main中调用的函数为pair<int,int> Merge3Node(Point cell1, Point cell2, Point cell3, double r)：完成了父节点x,y坐标的选取，与obstacle区域重合的检查，最终返回可行的x,y。
+4.	半径（线长）的计算
+依据匹配结果，求出最大的R值。R值代表了每一级需要的线长约束，需要snaking补偿到R的长度。Merge_2points.h中的Get_2p_r()函数和merge_3points.h中的Get_3p_r()函数可以分别进行计算。
+5.	Buffer插入
+依据buffer信息文件，针对不同扇出情况选择数量最小的buffer策略。
+ 
+Report_tree.h包含buffer的数据结构，net的数据结构
+ 
+ 
+Report_buf_connection()函数完成了sink cell与buffer，buffer与buffer，buffer与叶节点buffer之间的连接关系。
+
