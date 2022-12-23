@@ -461,5 +461,6 @@ Report_tree.h包含buffer的数据结构，net的数据结构
  
 Report_buf_connection()函数完成了sink cell与buffer，buffer与buffer，buffer与叶节点buffer之间的连接关系。
  
- ###持续更新中###，为国内开源EDA添砖加瓦，尽量用英文doc。
+ 
+ ###持续更新中###，为国内开源EDA添砖加瓦，尽量用中文doc。
 
